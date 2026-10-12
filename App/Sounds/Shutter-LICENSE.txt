@@ -1,0 +1,13 @@
+Shutter.wav
+
+Source: Leica_M11_Shutter_burst_dry_sound_96kHz_32bit-float
+Author: TSP-Talk
+Published: 2024-01-26
+Source page: https://freesound.org/people/TSP-Talk/sounds/720702/
+Source audio: https://cdn.freesound.org/previews/720/720702_14079354-hq.mp3
+License: CC0 1.0 Universal
+License URL: https://creativecommons.org/publicdomain/zero/1.0/
+
+Adaptation for getGamen: one shutter cycle (0.272–0.478 seconds),
+2 ms fade-in and 16 ms fade-out, mono 48 kHz 16-bit PCM WAV.
+The source recording is of a Leica M11; no affiliation or endorsement is implied.

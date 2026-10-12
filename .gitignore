@@ -1,0 +1,14 @@
+.build/
+.swiftpm/
+*.p8
+.DS_Store
+# Codex / VibesDeGoGo!
+.codex/.vdgg-*
+
+App/.build-number.lock
+
+# Claude Code / VibesDeGoGo!
+.claude/.vdgg-*
+
+# VibesDeGoGo! review executor logs
+tasks/vdgg/*/review/*/log-*.txt
