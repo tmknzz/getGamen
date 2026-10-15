@@ -13,6 +13,8 @@ struct LineWidthRule {
     static let outline = LineWidthRule(range: 0.5...100, scale: 10, presets: [0.5, 1, 2, 3, 4, 6, 8, 12, 16])
     /// ImageBorder stores whole pixels.
     static let imageBorder = LineWidthRule(range: 1...100, scale: 1, presets: [1, 2, 3, 4, 6, 8, 12, 16])
+    /// The mosaic block size (粗さ): whole pixels in the editor slider range.
+    static let mosaic = LineWidthRule(range: EditorInteraction.blockSizeRange, scale: 1, presets: [2, 4, 8, 12, 16, 24, 32, 40])
 
     /// Accepts full-width digits, surrounding spaces and a trailing "px". Nil when the text is not a number.
     func value(from text: String) -> Double? {
@@ -75,7 +77,7 @@ final class EditorInteraction {
     var borderWidth: Double = 1
     var blockSize: Double
     /// The editor slider range. CLI, MCP and saved documents still accept 1...100.
-    static let blockSizeRange: ClosedRange<Double> = 2...40
+    nonisolated static let blockSizeRange: ClosedRange<Double> = 2...40
     private let defaults: UserDefaults
     private var start: CGPoint?
     private var base = EditState()

@@ -334,6 +334,10 @@ final class CaptureChooserControllerTests: XCTestCase {
             XCTAssertTrue(controller.window.isVisible)
             XCTAssertNotNil(runtime.failureMessage)
             XCTAssertEqual(runtime.failureNeedsReselection, error is PreviousRegionError)
+            // The window must grow to the message's wrapped height instead of truncating it.
+            let content = try XCTUnwrap(controller.window.contentView)
+            content.layoutSubtreeIfNeeded()
+            XCTAssertGreaterThanOrEqual(content.frame.height, content.fittingSize.height)
         }
     }
 

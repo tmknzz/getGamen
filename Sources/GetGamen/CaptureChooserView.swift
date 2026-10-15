@@ -73,6 +73,7 @@ struct CaptureChooserView: View {
             }
             if let message = runtime.failureMessage {
                 Text(message).foregroundStyle(.red).textSelection(.enabled)
+                    .fixedSize(horizontal: false, vertical: true)
                 if runtime.failureNeedsReselection {
                     Button("範囲を選び直す") { perform(.captureRegion) }
                 }

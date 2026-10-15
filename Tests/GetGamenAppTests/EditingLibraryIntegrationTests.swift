@@ -404,6 +404,16 @@ final class EditingLibraryIntegrationTests: XCTestCase {
         _ = await f.exports.waitForCurrentWorkers()
     }
 
+    func testTypedMosaicBlockSizeIsClampedToSliderRange() {
+        let rule = LineWidthRule.mosaic
+        XCTAssertEqual(rule.range, EditorInteraction.blockSizeRange)
+        for (typed, expected) in [("25", 25.0), ("100", 40), ("0", 2), ("２５", 25), ("12.6", 13)] {
+            XCTAssertEqual(rule.value(from: typed), expected, typed)
+        }
+        XCTAssertNil(rule.value(from: "abc"))
+        XCTAssertEqual(rule.text(for: 25), "25")
+    }
+
     func testImportAcceptedBeforeFreezeIsDrainedAndReportsUnopenedEditor() async throws {
         let f = try Fixture(); defer { f.remove() }
         let editors = EditorWindowCoordinator(store: f.store, exports: f.exports, settings: f.settings)

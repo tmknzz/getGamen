@@ -167,6 +167,12 @@ struct EditorView: View {
                 }
                 if [.select, .mosaic].contains(interaction.tool) {
                     attributeSlider("粗さ", value: $interaction.blockSize, range: EditorInteraction.blockSizeRange, group: .mosaic)
+                    // Shows the truncated size the renderer uses, not the slider's fractional position.
+                    WidthComboBox(rule: .mosaic, label: "粗さ", value: Double(Int(interaction.blockSize))) { size in
+                        interaction.blockSize = size
+                        commitAttribute(.mosaic)
+                    }
+                    .frame(width: 64)
                 }
                 if interaction.tool == .crop {
                     Text("ドラッグで範囲を指定・調整 ／ ⌘Zで取り消す")
@@ -210,7 +216,7 @@ struct EditorView: View {
     private func lineWidthField(_ rule: LineWidthRule, value: Binding<Double>) -> some View {
         HStack(spacing: 4) {
             Text("線幅").font(.caption).fixedSize()
-            WidthComboBox(rule: rule, value: value.wrappedValue) { width in
+            WidthComboBox(rule: rule, label: "線幅", value: value.wrappedValue) { width in
                 value.wrappedValue = width
                 commitAttribute(.outline)
             }
@@ -387,13 +393,14 @@ struct EditorView: View {
 /// A repeated commit of the same width adds no undo step (EditorSession.commitDraft).
 private struct WidthComboBox: NSViewRepresentable {
     let rule: LineWidthRule
+    let label: String
     let value: Double
     let commit: (Double) -> Void
 
     func makeNSView(context: Context) -> NSComboBox {
         let box = NSComboBox()
         box.completes = false
-        box.setAccessibilityLabel("線幅")
+        box.setAccessibilityLabel(label)
         box.delegate = context.coordinator
         box.target = context.coordinator
         box.action = #selector(Coordinator.commitTyped(_:))
