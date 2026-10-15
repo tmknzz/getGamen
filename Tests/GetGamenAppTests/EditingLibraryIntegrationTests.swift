@@ -382,6 +382,28 @@ final class EditingLibraryIntegrationTests: XCTestCase {
         _ = await f.exports.waitForCurrentWorkers()
     }
 
+    func testSavedMosaicBlockSizeOutsideSliderRangeFallsBackToDefault() async throws {
+        let f = try Fixture(); defer { f.remove() }
+        let doc = try await f.store.create(original: f.original, pixelSize: PixelSize(width: 100, height: 100))
+        let session = try await EditorSession.open(documentID: doc.documentID, store: f.store, exports: f.exports, settings: f.settings)
+        for (saved, expected) in [(1.0, 12.0), (60, 12), (2, 2), (40, 40)] {
+            f.defaults.set(saved, forKey: "getGamen.edit.blockSize")
+            XCTAssertEqual(EditorInteraction(session: session, defaults: f.defaults).blockSize, expected, "saved \(saved)")
+        }
+        // A mosaic made outside the editor (CLI allows 1...100) must not carry 60 into the next new mosaic.
+        let interaction = EditorInteraction(session: session, defaults: f.defaults)
+        interaction.tool = .mosaic; interaction.blockSize = 60
+        interaction.begin(CGPoint(x: 10, y: 10), shift: false); interaction.end(CGPoint(x: 50, y: 50))
+        await session.waitUntilIdle()
+        XCTAssertEqual(session.draft.objects.last?.style, .mosaic(blockSize: 60))
+        interaction.tool = .select; interaction.blockSize = 12
+        interaction.begin(CGPoint(x: 30, y: 30), shift: false); interaction.end(CGPoint(x: 30, y: 30))
+        await session.waitUntilIdle()
+        XCTAssertEqual(interaction.blockSize, 40)
+        XCTAssertEqual(session.draft.objects.last?.style, .mosaic(blockSize: 60))
+        _ = await f.exports.waitForCurrentWorkers()
+    }
+
     func testImportAcceptedBeforeFreezeIsDrainedAndReportsUnopenedEditor() async throws {
         let f = try Fixture(); defer { f.remove() }
         let editors = EditorWindowCoordinator(store: f.store, exports: f.exports, settings: f.settings)

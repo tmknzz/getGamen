@@ -1,5 +1,4 @@
 import CoreGraphics
-import CoreImage
 import Foundation
 
 /// The shared preview/export boundary. Unsupported edits fail before drawing any output.
@@ -92,14 +91,7 @@ public enum EditRenderer {
                 let mosaic: CGImage
                 if let cached = cachedMosaic, cached.size == blockSize { mosaic = cached.image }
                 else {
-                    let input = CIImage(cgImage: redacted)
-                    guard let filter = CIFilter(name: "CIPixellate", parameters: [
-                        kCIInputImageKey: input.clampedToExtent(),
-                        kCIInputScaleKey: Double(blockSize),
-                        kCIInputCenterKey: CIVector(x: 0, y: 0)
-                    ]), let output = filter.outputImage?.cropped(to: input.extent),
-                    let image = CIContext(options: [.workingColorSpace: space, .outputColorSpace: space])
-                        .createCGImage(output, from: input.extent, format: .RGBA8, colorSpace: space) else {
+                    guard let image = blockAverage(redacted, blockSize: blockSize, space: space) else {
                         context.restoreGState()
                         throw RenderingError.renderingFailed
                     }
@@ -146,6 +138,39 @@ public enum EditRenderer {
         let x = floor(bounds.x), y = floor(bounds.y)
         let right = ceil(bounds.x + bounds.width), bottom = ceil(bounds.y + bounds.height)
         return CGRect(x: x, y: Double(height) - bottom, width: right - x, height: bottom - y)
+    }
+
+    /// Fills each blockSize cell, anchored at the top-left pixel, with the mean of its pixels.
+    /// A point sample per cell (CIPixellate) turns thin text into scattered dark dots.
+    private static func blockAverage(_ image: CGImage, blockSize: Int, space: CGColorSpace) -> CGImage? {
+        let width = image.width, height = image.height
+        guard let context = CGContext(data: nil, width: width, height: height, bitsPerComponent: 8,
+                                      bytesPerRow: width * 4, space: space,
+                                      bitmapInfo: CGBitmapInfo.byteOrder32Big.rawValue |
+                                        CGImageAlphaInfo.premultipliedLast.rawValue),
+              let data = context.data else { return nil }
+        context.setBlendMode(.copy)
+        context.draw(image, in: CGRect(x: 0, y: 0, width: width, height: height))
+        let rowBytes = context.bytesPerRow
+        let pixels = data.assumingMemoryBound(to: UInt8.self)
+        for top in stride(from: 0, to: height, by: blockSize) {
+            let rows = top..<min(top + blockSize, height)
+            for left in stride(from: 0, to: width, by: blockSize) {
+                let columns = left..<min(left + blockSize, width)
+                var sum = SIMD4<Int>.zero
+                for y in rows { for x in columns {
+                    let i = y * rowBytes + x * 4
+                    sum &+= SIMD4(Int(pixels[i]), Int(pixels[i + 1]), Int(pixels[i + 2]), Int(pixels[i + 3]))
+                } }
+                let count = rows.count * columns.count
+                let mean = (sum &+ count / 2) / count
+                for y in rows { for x in columns {
+                    let i = y * rowBytes + x * 4
+                    for c in 0..<4 { pixels[i + c] = UInt8(mean[c]) }
+                } }
+            }
+        }
+        return context.makeImage()
     }
 
     /// Stored geometry describes upright original pixels. It never requests a resize.

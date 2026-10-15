@@ -17,9 +17,9 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleShortVersionString</key>
-	<string>0.2.0</string>
+	<string>0.2.1</string>
 	<key>CFBundleVersion</key>
-	<string>20261012.1</string>
+	<string>20261015.4</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>ja</string>
 	<key>LSMinimumSystemVersion</key>
@@ -46,6 +46,6 @@
 		</dict>
 	</array>
 	<key>getGamenBuildNumber</key>
-	<string>20261012AA</string>
+	<string>20261015AD</string>
 </dict>
 </plist>

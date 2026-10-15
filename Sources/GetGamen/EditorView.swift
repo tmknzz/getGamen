@@ -166,7 +166,7 @@ struct EditorView: View {
                     }), supportsOpacity: false)
                 }
                 if [.select, .mosaic].contains(interaction.tool) {
-                    attributeSlider("粗さ", value: $interaction.blockSize, range: 1...100, group: .mosaic)
+                    attributeSlider("粗さ", value: $interaction.blockSize, range: EditorInteraction.blockSizeRange, group: .mosaic)
                 }
                 if interaction.tool == .crop {
                     Text("ドラッグで範囲を指定・調整 ／ ⌘Zで取り消す")
@@ -224,7 +224,7 @@ struct EditorView: View {
             Text(title).font(.caption).fixedSize()
             Slider(value: value, in: range, onEditingChanged: { editing in
                 if !editing { commitAttribute(group) }
-            }).frame(width: 90)
+            }).frame(width: 140)
         }
     }
 

@@ -73,6 +73,22 @@ final class EditRenderingFeatureTests: XCTestCase {
 
     }
 
+    func testMosaicFillsEachTopLeftAnchoredBlockWithItsMean() throws {
+        // 4px blocks from the top-left: A=(0..<4,0..<4) B=(4..<6,0..<4) C=(0..<4,4) D=(4..<6,4).
+        let original = try image(width: 6, height: 5) { x, y in
+            [x == 0 && y == 0 ? 255 : 0, x == 5 && y < 4 ? 255 : 0, y == 4 && x != 3 && x != 5 ? 255 : 0, 255]
+        }
+        let mosaic = EditObject(id: UUID(), bounds: PixelBounds(x: 0, y: 0, width: 6, height: 5), style: .mosaic(blockSize: 4))
+        let output = try pixels(EditRenderer.render(original: original, edits: EditState(objects: [mosaic])))
+        // Means rounded half up: 255/16, 4*255/8, 3*255/4, 255/2.
+        let a: [UInt8] = [16, 0, 0, 255], b: [UInt8] = [0, 128, 0, 255]
+        let c: [UInt8] = [0, 0, 191, 255], d: [UInt8] = [0, 0, 128, 255]
+        for y in 0..<5 { for x in 0..<6 {
+            let expected = y < 4 ? (x < 4 ? a : b) : (x < 4 ? c : d)
+            XCTAssertEqual(pixel(output, x: x, y: y, width: 6), expected, "(\(x), \(y))")
+        } }
+    }
+
     func testMosaicChangesFineDetailAndGrayPassAlwaysWins() throws {
         let original = try image(width: 32, height: 32) { x, y in ((x+y)%2 == 0) ? [0,0,0,255] : [255,255,255,255] }
         let mosaic = EditObject(id: UUID(), bounds: PixelBounds(x: 0, y: 0, width: 32, height: 32), style: .mosaic(blockSize: 8))

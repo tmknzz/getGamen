@@ -74,6 +74,8 @@ final class EditorInteraction {
     var borderColor: GetGamenCore.RGBColor?
     var borderWidth: Double = 1
     var blockSize: Double
+    /// The editor slider range. CLI, MCP and saved documents still accept 1...100.
+    static let blockSizeRange: ClosedRange<Double> = 2...40
     private let defaults: UserDefaults
     private var start: CGPoint?
     private var base = EditState()
@@ -95,7 +97,7 @@ final class EditorInteraction {
         borderBrightness = session.draft.border?.brightness ?? number("borderBrightness", 0.6, 0...1)
         borderColor = session.draft.border?.color
         borderWidth = Double(session.draft.border?.width ?? Int(number("borderWidth", 1, LineWidthRule.imageBorder.range)))
-        blockSize = number("blockSize", 12, 1...100)
+        blockSize = number("blockSize", 12, Self.blockSizeRange)
     }
 
     func undo() {
@@ -238,7 +240,8 @@ final class EditorInteraction {
                 case .outline(let style): color = style.color; lineWidth = style.lineWidth; radius = style.cornerRadius
                 case .grayMask(let value): brightness = value; maskColor = nil
                 case .colorMask(let value): maskColor = value
-                case .mosaic(let value): blockSize = Double(value)
+                case .mosaic(let value):
+                    blockSize = min(max(Double(value), Self.blockSizeRange.lowerBound), Self.blockSizeRange.upperBound)
                 }
             }
         }
